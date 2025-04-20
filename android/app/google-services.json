@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "884532341958",
+    "project_id": "amanin-6fb12",
+    "storage_bucket": "amanin-6fb12.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:884532341958:android:4c698b211e46a9231ffbc7",
+        "android_client_info": {
+          "package_name": "com.mozaldy.amanin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdNwX3d5oEsW72DpIREITV0d-z3-2KumI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
