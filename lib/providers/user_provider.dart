@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
@@ -70,10 +69,7 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -106,3 +102,4 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+

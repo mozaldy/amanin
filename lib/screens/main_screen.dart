@@ -1,3 +1,4 @@
+import 'package:amanin/screens/news_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
@@ -18,6 +19,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const PostsScreen(),
+    const NewsScreen(),
     const ProfileScreen(),
   ];
 
@@ -53,6 +55,7 @@ class _MainScreenState extends State<MainScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Posts'),
+          BottomNavigationBarItem(icon: Icon(Icons.newspaper), label: 'News'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),

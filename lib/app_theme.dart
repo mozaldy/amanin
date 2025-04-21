@@ -14,6 +14,12 @@ class AppTheme {
     return ThemeData.dark().copyWith(
       primaryColor: primaryColor,
       scaffoldBackgroundColor: darkBackground,
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: secondaryColor,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: Colors.grey,
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: primaryColor,
         elevation: 0,

@@ -1,9 +1,9 @@
 // lib/screens/register_screen.dart
 
+import 'package:amanin/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
-import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -41,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (success && mounted) {
         debugPrint("Sampek sini 2");
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       }
     }
@@ -176,4 +176,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-

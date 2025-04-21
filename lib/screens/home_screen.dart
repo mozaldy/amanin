@@ -7,7 +7,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../models/post_model.dart';
 import '../providers/post_provider.dart';
-import '../providers/user_provider.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -42,9 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
     final postProvider = Provider.of<PostProvider>(context);
-    final user = userProvider.user;
     final posts = postProvider.posts;
 
     // Update markers whenever posts change
