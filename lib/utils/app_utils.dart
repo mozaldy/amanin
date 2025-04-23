@@ -1,9 +1,6 @@
-// lib/utils/app_utils.dart
-
 import 'package:flutter/material.dart';
 
 class AppUtils {
-  // Show a snackbar with a message
   static void showSnackBar(
     BuildContext context,
     String message, {
@@ -21,7 +18,6 @@ class AppUtils {
     );
   }
 
-  // Format date to a readable string
   static String formatDateTime(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
@@ -43,7 +39,6 @@ class AppUtils {
     }
   }
 
-  // Get color based on severity
   static Color getSeverityColor(int severity) {
     switch (severity) {
       case 1:
@@ -61,7 +56,6 @@ class AppUtils {
     }
   }
 
-  // Get icon based on crime type
   static IconData getCrimeTypeIcon(String crimeType) {
     switch (crimeType.toLowerCase()) {
       case 'Maling':

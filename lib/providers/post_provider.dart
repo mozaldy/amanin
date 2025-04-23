@@ -1,103 +1,95 @@
-// lib/providers/post_provider.dart
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/post_model.dart';
 import '../services/post_service.dart';
 
-class PostProvider extends ChangeNotifier {
-  final PostService _postService = PostService();
-  List<PostModel> _posts = [];
-  bool _isLoading = false;
-  String? _error;
+final postServiceProvider = Provider<PostService>((ref) {
+  return PostService();
+});
 
-  List<PostModel> get posts => _posts;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
+class PostsState {
+  final List<PostModel> posts;
+  final bool isLoading;
+  final String? error;
 
-  // Initialize the provider
-  void initialize() {
-    _getPosts();
+  PostsState({required this.posts, required this.isLoading, this.error});
+
+  PostsState copyWith({
+    List<PostModel>? posts,
+    bool? isLoading,
+    String? error,
+  }) {
+    return PostsState(
+      posts: posts ?? this.posts,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+    );
   }
+}
 
-  // Listen to posts stream
-  void _getPosts() {
-    _isLoading = true;
-    notifyListeners();
+class PostsNotifier extends StateNotifier<PostsState> {
+  final PostService _postService;
+
+  PostsNotifier(this._postService)
+    : super(PostsState(posts: [], isLoading: false));
+
+  void getPosts() {
+    state = state.copyWith(isLoading: true);
 
     _postService.getPosts().listen(
       (posts) {
-        _posts = posts;
-        _isLoading = false;
-        _error = null;
-        notifyListeners();
+        state = state.copyWith(posts: posts, isLoading: false, error: null);
       },
       onError: (e) {
-        _error = e.toString();
-        _isLoading = false;
-        notifyListeners();
+        state = state.copyWith(isLoading: false, error: e.toString());
       },
     );
   }
 
-  // Create a new post
   Future<bool> createPost(PostModel post) async {
-    _isLoading = true;
-    notifyListeners();
+    state = state.copyWith(isLoading: true);
 
     try {
       await _postService.createPost(post);
-      _isLoading = false;
-      _error = null;
-      notifyListeners();
+      state = state.copyWith(isLoading: false, error: null);
       return true;
     } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
-  // Update an existing post
   Future<bool> updatePost(PostModel post) async {
-    _isLoading = true;
-    notifyListeners();
+    state = state.copyWith(isLoading: true);
 
     try {
       await _postService.updatePost(post);
-      _isLoading = false;
-      _error = null;
-      notifyListeners();
+      state = state.copyWith(isLoading: false, error: null);
       return true;
     } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
-  // Delete a post
   Future<bool> deletePost(String postId) async {
-    _isLoading = true;
-    notifyListeners();
+    state = state.copyWith(isLoading: true);
 
     try {
       await _postService.deletePost(postId);
-      _isLoading = false;
-      _error = null;
-      notifyListeners();
+      state = state.copyWith(isLoading: false, error: null);
       return true;
     } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
   void clearError() {
-    _error = null;
-    notifyListeners();
+    state = state.copyWith(error: null);
   }
 }
+
+final postsProvider = StateNotifierProvider<PostsNotifier, PostsState>((ref) {
+  final postService = ref.watch(postServiceProvider);
+  return PostsNotifier(postService);
+});

@@ -1,45 +1,52 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
-class UserProvider extends ChangeNotifier {
-  final AuthService _authService = AuthService();
-  UserModel? _user;
-  bool _isLoading = false;
-  String? _error;
+final authServiceProvider = Provider<AuthService>((ref) {
+  return AuthService();
+});
 
-  UserModel? get user => _user;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
-  bool get isAuthenticated => _user != null;
+class UserState {
+  final UserModel? user;
+  final bool isLoading;
+  final String? error;
 
-  UserProvider() {
-    // Listen to auth state changes
+  UserState({this.user, required this.isLoading, this.error});
+
+  bool get isAuthenticated => user != null;
+
+  UserState copyWith({UserModel? user, bool? isLoading, String? error}) {
+    return UserState(
+      user: user ?? this.user,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+    );
+  }
+}
+
+class UserNotifier extends StateNotifier<UserState> {
+  final AuthService _authService;
+
+  UserNotifier(this._authService) : super(UserState(isLoading: false)) {
     _authService.authStateChanges.listen((User? firebaseUser) {
       if (firebaseUser != null) {
         _fetchUserData(firebaseUser.uid);
       } else {
-        _user = null;
-        notifyListeners();
+        state = state.copyWith(user: null);
       }
     });
   }
 
   Future<void> _fetchUserData(String uid) async {
-    _isLoading = true;
-    notifyListeners();
+    state = state.copyWith(isLoading: true);
 
     try {
-      _user = await _authService.getUserData(uid);
-      _error = null;
+      final user = await _authService.getUserData(uid);
+      state = state.copyWith(user: user, isLoading: false, error: null);
     } catch (e) {
-      _error = e.toString();
-      _user = null;
+      state = state.copyWith(user: null, isLoading: false, error: e.toString());
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   Future<bool> register({
@@ -47,59 +54,51 @@ class UserProvider extends ChangeNotifier {
     required String password,
     required String fullName,
   }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
-      _user = await _authService.registerWithEmailAndPassword(
+      final user = await _authService.registerWithEmailAndPassword(
         email: email,
         password: password,
         fullName: fullName,
       );
 
-      _isLoading = false;
-      notifyListeners();
+      state = state.copyWith(user: user, isLoading: false);
       return true;
     } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
   Future<bool> login({required String email, required String password}) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
-      _user = await _authService.signInWithEmailAndPassword(
+      final user = await _authService.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      _isLoading = false;
-      notifyListeners();
+      state = state.copyWith(user: user, isLoading: false);
       return true;
     } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
   Future<void> logout() async {
     await _authService.signOut();
-    _user = null;
-    notifyListeners();
+    state = state.copyWith(user: null);
   }
 
   void clearError() {
-    _error = null;
-    notifyListeners();
+    state = state.copyWith(error: null);
   }
 }
 
+final userProvider = StateNotifierProvider<UserNotifier, UserState>((ref) {
+  final authService = ref.watch(authServiceProvider);
+  return UserNotifier(authService);
+});

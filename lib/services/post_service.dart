@@ -1,5 +1,3 @@
-// lib/services/post_service.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/post_model.dart';
 
@@ -7,7 +5,6 @@ class PostService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String collectionPath = 'posts';
 
-  // Get all posts
   Stream<List<PostModel>> getPosts() {
     return _firestore
         .collection(collectionPath)
@@ -21,7 +18,6 @@ class PostService {
         );
   }
 
-  // Get a single post
   Future<PostModel?> getPost(String postId) async {
     final DocumentSnapshot doc =
         await _firestore.collection(collectionPath).doc(postId).get();
@@ -31,7 +27,6 @@ class PostService {
     return null;
   }
 
-  // Create a new post
   Future<String> createPost(PostModel post) async {
     final DocumentReference docRef = await _firestore
         .collection(collectionPath)
@@ -39,7 +34,6 @@ class PostService {
     return docRef.id;
   }
 
-  // Update an existing post
   Future<void> updatePost(PostModel post) async {
     await _firestore
         .collection(collectionPath)
@@ -47,7 +41,6 @@ class PostService {
         .update(post.toMap());
   }
 
-  // Delete a post
   Future<void> deletePost(String postId) async {
     await _firestore.collection(collectionPath).doc(postId).delete();
   }

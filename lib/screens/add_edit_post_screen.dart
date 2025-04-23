@@ -1,7 +1,8 @@
 // lib/screens/add_edit_post_screen.dart
 
+import 'package:amanin/utils/app_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart' as loc;
 import 'package:geocoding/geocoding.dart' as geo;
@@ -11,16 +12,16 @@ import '../providers/user_provider.dart';
 import '../app_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AddEditPostScreen extends StatefulWidget {
+class AddEditPostScreen extends ConsumerStatefulWidget {
   final PostModel? post;
 
   const AddEditPostScreen({Key? key, this.post}) : super(key: key);
 
   @override
-  _AddEditPostScreenState createState() => _AddEditPostScreenState();
+  ConsumerState<AddEditPostScreen> createState() => _AddEditPostScreenState();
 }
 
-class _AddEditPostScreenState extends State<AddEditPostScreen> {
+class _AddEditPostScreenState extends ConsumerState<AddEditPostScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -29,10 +30,10 @@ class _AddEditPostScreenState extends State<AddEditPostScreen> {
   String _crimeType = 'Maling';
   int _severity = 3;
 
-  // Location variables
   final loc.Location _locationService = loc.Location();
-  LatLng? _selectedLocation;
   bool _mapInitialized = false;
+  LatLng? _selectedLocation;
+
   final Set<Marker> _markers = {};
   GoogleMapController? _mapController;
 
@@ -57,7 +58,6 @@ class _AddEditPostScreenState extends State<AddEditPostScreen> {
       _crimeType = widget.post!.crimeType;
       _severity = widget.post!.severity;
 
-      // Set selected location if post has coordinates
       if (widget.post!.coordinates != null) {
         _selectedLocation = LatLng(
           widget.post!.coordinates!.latitude,
@@ -66,7 +66,6 @@ class _AddEditPostScreenState extends State<AddEditPostScreen> {
       }
     }
 
-    // Request location permissions
     _checkLocationPermission();
   }
 
@@ -205,13 +204,11 @@ class _AddEditPostScreenState extends State<AddEditPostScreen> {
         return;
       }
 
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final postProvider = Provider.of<PostProvider>(context, listen: false);
-      final user = userProvider.user;
+      final user = ref.read(userProvider).user;
+      final postNotifier = ref.read(postsProvider.notifier);
+      final isEditing = widget.post != null;
 
       if (user == null) return;
-
-      final isEditing = widget.post != null;
 
       final PostModel post = PostModel(
         id: isEditing ? widget.post!.id : '',
@@ -231,9 +228,9 @@ class _AddEditPostScreenState extends State<AddEditPostScreen> {
 
       bool success;
       if (isEditing) {
-        success = await postProvider.updatePost(post);
+        success = await postNotifier.updatePost(post);
       } else {
-        success = await postProvider.createPost(post);
+        success = await postNotifier.createPost(post);
       }
 
       if (success && mounted) {
@@ -244,7 +241,7 @@ class _AddEditPostScreenState extends State<AddEditPostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final postProvider = Provider.of<PostProvider>(context);
+    final postState = ref.watch(postsProvider);
     final isEditing = widget.post != null;
 
     return Scaffold(
@@ -444,12 +441,12 @@ class _AddEditPostScreenState extends State<AddEditPostScreen> {
                 ],
               ),
               const SizedBox(height: 24.0),
-              if (postProvider.error != null)
+              if (postState.error != null)
                 Container(
                   padding: const EdgeInsets.all(8.0),
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.blue.withOpacity(0.1),
                   child: Text(
-                    postProvider.error!,
+                    postState.error!,
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
@@ -457,12 +454,12 @@ class _AddEditPostScreenState extends State<AddEditPostScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: postProvider.isLoading ? null : _savePost,
+                  onPressed: postState.isLoading ? null : _savePost,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
                   ),
                   child:
-                      postProvider.isLoading
+                      postState.isLoading
                           ? const CircularProgressIndicator()
                           : Text(isEditing ? 'Update' : 'Submit'),
                 ),

@@ -3,72 +3,85 @@
 import 'package:amanin/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/post_model.dart';
 import '../providers/post_provider.dart';
 import '../providers/user_provider.dart';
 import 'add_edit_post_screen.dart';
 
-class PostsScreen extends StatefulWidget {
+class PostsScreen extends ConsumerStatefulWidget {
   const PostsScreen({Key? key}) : super(key: key);
 
   @override
-  _PostsScreenState createState() => _PostsScreenState();
+  ConsumerState<PostsScreen> createState() => _PostsScreenState();
 }
 
-class _PostsScreenState extends State<PostsScreen> {
+class _PostsScreenState extends ConsumerState<PostsScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize the posts provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PostProvider>(context, listen: false).initialize();
+      ref.read(postsProvider.notifier).getPosts();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final postProvider = Provider.of<PostProvider>(context);
-    final isAdmin = userProvider.user?.isAdmin ?? false;
+    final userState = ref.watch(userProvider);
+    final postState = ref.watch(postsProvider);
+    final isAdmin = userState.user?.isAdmin ?? false;
 
-    return Stack(
-      children: [
-        postProvider.isLoading && postProvider.posts.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : postProvider.posts.isEmpty
-            ? const Center(
-              child: Text(
-                'Masih belum ada insiden.',
-                style: TextStyle(fontSize: 18.0),
-              ),
-            )
-            : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: postProvider.posts.length,
-              itemBuilder: (context, index) {
-                final post = postProvider.posts[index];
-                return _buildPostCard(context, post, isAdmin);
-              },
-            ),
-        if (isAdmin)
-          Positioned(
-            bottom: 16.0,
-            right: 16.0,
-            child: FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddEditPostScreen(),
-                  ),
-                );
-              },
-              child: const Icon(Icons.add),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Insiden'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.read(postsProvider.notifier).getPosts();
+            },
           ),
-      ],
+        ],
+      ),
+      body: Stack(
+        children: [
+          postState.isLoading && postState.posts.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : postState.posts.isEmpty
+              ? const Center(
+                child: Text(
+                  'Masih belum ada insiden.',
+                  style: TextStyle(fontSize: 18.0),
+                ),
+              )
+              : ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: postState.posts.length,
+                itemBuilder: (context, index) {
+                  final post = postState.posts[index];
+                  return _buildPostCard(context, post, isAdmin);
+                },
+              ),
+          if (isAdmin)
+            Positioned(
+              bottom: 16.0,
+              right: 16.0,
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddEditPostScreen(),
+                    ),
+                  );
+                },
+                child: const Icon(Icons.add),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -238,10 +251,7 @@ class _PostsScreenState extends State<PostsScreen> {
               ),
               TextButton(
                 onPressed: () {
-                  Provider.of<PostProvider>(
-                    context,
-                    listen: false,
-                  ).deletePost(postId);
+                  ref.read(postsProvider.notifier).deletePost(postId);
                   Navigator.of(context).pop();
                 },
                 child: const Text(

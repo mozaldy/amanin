@@ -1,22 +1,20 @@
-// lib/screens/home_screen.dart
-
 import 'dart:async';
 import 'package:amanin/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
 import '../models/post_model.dart';
 import '../providers/post_provider.dart';
 import 'package:intl/intl.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   Set<Marker> _markers = {};
   String _selectedCrimeType = 'All';
@@ -24,9 +22,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isMapLoaded = false;
   PostModel? _selectedPost;
 
-  // Default camera position - can be updated based on user location
   static const CameraPosition _defaultLocation = CameraPosition(
-    target: LatLng(-6.2088, 106.8456), // Default to Jakarta, Indonesia
+    target: LatLng(-6.2088, 106.8456),
     zoom: 12,
   );
 
@@ -35,13 +32,13 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Initialize posts
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<PostProvider>(context, listen: false).initialize();
+      ref.read(postsProvider.notifier).getPosts();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final postProvider = Provider.of<PostProvider>(context);
+    final postProvider = ref.watch(postsProvider);
     final posts = postProvider.posts;
 
     // Update markers whenever posts change
@@ -51,13 +48,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crime Tracker'),
+        title: const Text('Map Amanin'),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: () {
               _showFilterDialog(context, posts);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.read(postsProvider.notifier).getPosts();
             },
           ),
         ],

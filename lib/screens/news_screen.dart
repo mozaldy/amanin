@@ -74,7 +74,7 @@ class _NewsScreenState extends State<NewsScreen> {
           });
         } else {
           setState(() {
-            _error = data['message'] ?? 'Failed to fetch news';
+            _error = data['message'] ?? 'Failed to fetch news from $url';
             _isLoading = false;
           });
         }
@@ -158,34 +158,7 @@ class _NewsScreenState extends State<NewsScreen> {
         child: Text('No news articles found', style: TextStyle(fontSize: 18.0)),
       );
     }
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Showing news about ${_selectedCrimeType == 'All' ? 'all crimes' : _selectedCrimeType} in Surabaya',
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
-            ),
-          ),
-        ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _fetchNews,
-            child: ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              itemCount: _newsArticles.length,
-              itemBuilder: (context, index) {
-                final article = _newsArticles[index];
-                return _buildNewsCard(article);
-              },
-            ),
-          ),
-        ),
-      ],
-    );
+    return SizedBox.shrink();
   }
 
   Widget _buildNewsCard(dynamic article) {

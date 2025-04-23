@@ -1,18 +1,16 @@
-// lib/screens/register_screen.dart
-
 import 'package:amanin/screens/main_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/user_provider.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
 
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -31,8 +29,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _register() async {
     if (_formKey.currentState!.validate()) {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final bool success = await userProvider.register(
+      final userNotifier = ref.read(userProvider.notifier);
+      final bool success = await userNotifier.register(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         fullName: _fullNameController.text.trim(),
@@ -49,7 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
+    final userState = ref.watch(userProvider);
 
     return Scaffold(
       body: Center(
@@ -139,21 +137,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 20.0),
-                if (userProvider.error != null)
+                if (userState.error != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20.0),
                     child: Text(
-                      userProvider.error!.replaceAll('Exception: ', ''),
+                      userState.error!.replaceAll('Exception: ', ''),
                       style: const TextStyle(color: Colors.red, fontSize: 14.0),
                     ),
                   ),
                 ElevatedButton(
-                  onPressed: userProvider.isLoading ? null : _register,
+                  onPressed: userState.isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
                   ),
                   child:
-                      userProvider.isLoading
+                      userState.isLoading
                           ? const CircularProgressIndicator()
                           : const Text(
                             'Register',
@@ -163,7 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 20.0),
                 TextButton(
                   onPressed: () {
-                    userProvider.clearError();
+                    ref.read(userProvider.notifier).clearError();
                     Navigator.of(context).pop();
                   },
                   child: const Text('Already have an account? Login'),

@@ -1,19 +1,17 @@
-// lib/screens/login_screen.dart
-
 import 'package:amanin/screens/main_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/user_provider.dart';
 import 'register_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  ConsumerState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -27,8 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final bool success = await userProvider.login(
+      final userNotifier = ref.read(userProvider.notifier);
+      final bool success = await userNotifier.login(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -43,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
+    final userState = ref.watch(userProvider);
 
     return Scaffold(
       body: Center(
@@ -99,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 20.0),
-                if (userProvider.error != null)
+                if (userState.error != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20.0),
                     child: Align(
@@ -114,12 +112,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ElevatedButton(
-                  onPressed: userProvider.isLoading ? null : _login,
+                  onPressed: userState.isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
                   ),
                   child:
-                      userProvider.isLoading
+                      userState.isLoading
                           ? const CircularProgressIndicator()
                           : const Text(
                             'Login',
@@ -129,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20.0),
                 TextButton(
                   onPressed: () {
-                    userProvider.clearError();
+                    ref.read(userProvider.notifier).clearError();
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const RegisterScreen(),
